@@ -1,0 +1,5 @@
+/.venv
+.env
+/media/
+.idea/
+.DS_Store

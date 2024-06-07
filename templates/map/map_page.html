@@ -1,0 +1,125 @@
+{% extends "../base.html" %}
+{% load static %}
+
+{% block scripts %}
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+<script>
+    let markerNew;
+    let locationMarkerNew = [];
+    let markersMap = new Map();
+
+    mapboxgl.accessToken = '{{ mapbox_access_token }}';
+    const map_index = new mapboxgl.Map({
+        container: 'map_container',
+        bounds: [[0.21687545122404117, 47.3024876979], [25.316438117018237, 54.983104153]],
+        maxZoom: 18,
+        hash: false,
+        style: 'mapbox://styles/mapbox/light-v10?optimize=true'
+    });
+
+    function handleReviewMarker() {
+        let markerElements = document.querySelectorAll('.list-group-item-action');
+
+        markerElements.forEach(markerElement => {
+            markerElement.addEventListener('click', function() {
+                let location = this.getAttribute('data-location').split(':').map(Number);
+
+                map_index.flyTo({
+                    center: location,
+                    zoom: 15,
+                    essential: true
+                });
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+        const markerModal = new bootstrap.Modal(document.getElementById('markerModal'));
+        const markerModalElement = document.getElementById('markerModal');
+
+        markerModalElement.addEventListener('hidden.bs.modal', function (event) {
+            document.getElementById('modalBody').innerHTML = '';
+        });
+
+        document.getElementById('saveMarker').addEventListener('click', async (e) => {
+            e.preventDefault();
+            startBtnLoader('#saveMarker')
+            const markerForm = document.getElementById('markerForm');
+
+            const formData = new FormData(markerForm);
+            await fetch('/add_marker', {
+                method: 'POST',
+                body: formData
+            }).then(function(response) {
+                if (response.status === 200) {
+                    markerModal.hide();
+                    return response.json();
+                } else if (response.status === 400) {
+                    return response.json();
+                }
+                endBtnLoader('#saveMarker');
+            }).then(function(data) {
+                endBtnLoader('#saveMarker');
+                if (data.status === 'error') {
+                    window.resetFormErrors();
+                    window.generateFormErrors(data.errors);
+                } else if (data.status === 'success') {
+                    console.log(data.data);
+                    let listMarkers = document.getElementById('list_markers');
+                    console.log(data.data['fields']);
+                    let marker = JSON.parse(data.data);
+                    console.log(marker);
+                    locationMarkerNew = [marker[0].fields.longitude, marker[0].fields.latitude];
+                    if (map_index instanceof mapboxgl.Map) {
+                        if (markerNew instanceof mapboxgl.Marker) {
+                            markerNew.remove();
+                        }
+                        markerNew = new mapboxgl.Marker({color: 'green'})
+                            .setLngLat(locationMarkerNew)
+                            .addTo(map_index);
+
+                        map_index.flyTo({
+                            center: locationMarkerNew,
+                            zoom: 15,
+                            essential: true
+                        });
+
+                        markersMap.set(marker[0].pk, markerNew);
+                    }
+                    
+                    listMarkers.insertAdjacentHTML('afterbegin', renderListItem(marker[0]));
+                }
+            }).catch(function(error) {
+                console.log(error);
+            });
+        });
+    });
+
+</script>
+{% endblock %}
+{% block content %}
+<div id="card-container" class="d-none ">
+    {% if not user.is_authenticated %}
+    {% include 'fragments/login_form.html' %}
+    {% else %}
+    {% include 'fragments/markers_list.html' %}
+    {% endif %}
+</div>
+<div id="map_container"></div>
+<div class="modal fade" id="markerModal" tabindex="-1" aria-labelledby="markerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markerModalLabel">Add New Place</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="saveMarker">Save Place</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

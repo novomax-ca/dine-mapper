@@ -1,0 +1,33 @@
+<form id="markerForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row mb-3">
+        <div class="col">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            {{ form.review.label_tag }}
+            {{ form.review }}
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col">
+            {{ form.visited_at.label_tag }}
+            {{ form.visited_at }}
+        </div>
+        <div class="col">
+            {{ form.rating.label_tag }}
+            {{ form.rating }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            {{ form.image.label_tag }}
+            {{ form.image }}
+        </div>
+    </div>
+    {{ form.longitude }}
+    {{ form.latitude }}
+</form>

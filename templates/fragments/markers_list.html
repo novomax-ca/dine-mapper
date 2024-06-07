@@ -1,0 +1,115 @@
+{% load static %}
+
+{% block css %}
+    <style>
+        h5.mb-1 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width-max: 220px;
+            width: 220px;
+        }
+        .list-group-item {
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function initAutocomplete() {
+            console.log('initAutocomplete');
+            const input = document.getElementById('id_name');
+            const autocompletePlace = new google.maps.places.Autocomplete(input);
+
+            autocompletePlace.addListener('place_changed', () => {
+                const place = autocompletePlace.getPlace();
+                if (!place.geometry) {
+                    input.value = '';
+                    return;
+                }
+
+                document.getElementById("id_longitude").value = place.geometry.location.lng();
+                document.getElementById("id_latitude").value = place.geometry.location.lat();
+                console.log(place);
+            });
+        }
+
+        window.onload = function() {
+            var cardContainer = document.getElementById('card-container');
+            var screenWidth = window.innerWidth;
+            var initialWidth = screenWidth * 0.30;
+            cardContainer.style.width = initialWidth + 'px';
+            cardContainer.classList.add('d-md-block');
+
+            fetch('/get_markers', {
+                method: 'GET',
+            })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(data => {
+                let listMarkers = document.getElementById('list_markers');
+                let markers = JSON.parse(data);
+                let dataSource = '';
+                markers.forEach(marker => {
+                    dataSource += renderListItem(marker);
+
+                    let locationMarker = [marker.fields.longitude, marker.fields.latitude];
+                    let popupHTML = `<div><img src="/media/${marker.fields.thumbnail}" style="width: 220px; height: auto;" onerror="this.onerror=null;this.src=\'/static/images/empty_photo.gif\';" alt="${marker.fields.name}"><h4>${marker.fields.name}</h4><p>Rating: ${marker.fields.rating}</p></div>`;
+                    let popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML);
+                    let markerNew = new mapboxgl.Marker()
+                        .setLngLat(locationMarker)
+                        .setPopup(popup)
+                        .addTo(map_index);
+
+                    markerNew.getElement().addEventListener('mouseenter', () => markerNew.togglePopup());
+                    markerNew.getElement().addEventListener('mouseleave', () => markerNew.togglePopup());
+
+                });
+                listMarkers.innerHTML = dataSource;
+                handleRemoveMarker(markersMap);
+                handleReviewMarker();
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('markerModal').addEventListener('show.bs.modal', function (event) {
+                fetch('/load_marker_form', {
+                    method: 'GET',
+                })
+                .then(response => response.text())
+                .then(data => {
+                    document.querySelector('#markerModal .modal-body').innerHTML = data;
+                    initAutocomplete();
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="card flex-fill w-100">
+    <div class="card-header pb-1">
+        <h5 class="card-title mb-0"><img src="{% static 'images/logo.gif' %}" style="height: 100px; width: auto;" alt="DineMapper"></h5>
+    </div>
+    <div class="d-flex justify-content-between p-3 ms-1 me-1">
+        <button id="add_review" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#markerModal">Add Review</button>
+        <a href="{% url 'logout' %}" class="btn btn-light btn-sm">Logout</a>
+    </div>
+    <div class="card-body pt-1">
+        <div>
+            <div class="list-group" id="list_markers">
+                <p class="d-flex justify-content-center align-items-center" style="height: 100vh;">The list of your venues will be here soon</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

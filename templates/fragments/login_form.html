@@ -1,0 +1,43 @@
+{% load static %}
+
+{% block css %}
+    <style>
+        .errorlist {
+            color: red;
+        }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        window.onload = function() {
+            var cardContainer = document.getElementById('card-container');
+            var screenWidth = window.innerWidth;
+            var initialWidth = screenWidth * 0.25;
+            cardContainer.style.width = initialWidth + 'px';
+            cardContainer.classList.add('d-md-block');
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="card flex-fill w-100">
+    <div class="card-header pb-1">
+        <h5 class="card-title mb-0"><img src="{% static 'images/logo.gif' %}" style="height: 100px; width: auto;" alt="DineMapper"></h5>
+    </div>
+    <div class="card-body pt-1">
+        <div class="m-sm-3">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-success">Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="text-center mb-3">
+        Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+    </div>
+</div>
+{% endblock %}
