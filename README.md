@@ -30,7 +30,7 @@ python manage.py runserver
 
 ![Signup Screen](screenshots/Screenshot%202024-06-07%20at%2014.28.19.png)
 ![Login Screen](screenshots/Screenshot%202024-06-07%20at%2013.05.29.png)
-![Main Screen](screenshots/Screenshot%202024-06-07%20at%2015.43.25.png)
+![Main Screen](screenshots/Screenshot%202024-06-08%20at%2013.20.33.png)
 ![Add new Place Screen](screenshots/Screenshot%202024-06-07%20at%2014.44.09.png)
 
 
