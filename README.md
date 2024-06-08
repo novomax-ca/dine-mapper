@@ -2,6 +2,15 @@
 
 Your establishments diary
 
+## Environment
+
+Create a .env file in the root directory and add the following variables
+
+```bash
+MAPBOX_ACCESS_TOKEN=
+GOOGLE_API_KEY=
+```
+
 ## Installation
 
 Download and install required dependencies from requirements.txt
